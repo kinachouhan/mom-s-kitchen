@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast"
 import { login } from "../redux/authSlice.js"
 import { useDispatch } from "react-redux"
+import { loginSuccess } from "../redux/authSlice";
 
 export const Login = () => {
 
@@ -37,6 +38,7 @@ export const Login = () => {
                 navigate("/admin");
                 toast.success("Logged in successfully 🎉");
             } else {
+                dispatch(loginSuccess(response.user)); 
                 navigate("/");
                 toast.success("Logged in successfully 🎉");
             }

@@ -130,6 +130,18 @@ export const resendOtp = createAsyncThunk(
   }
 );
 
+export const fetchMe = createAsyncThunk(
+  "auth/me",
+  async (_,) => {
+    const res = await fetch(`${API}/api/v1/user/me`, {
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error("Not authenticated");
+    return await res.json();
+  }
+);
+
+
 
 /* ---------------- SLICE ---------------- */
 const authSlice = createSlice({
@@ -140,18 +152,21 @@ const authSlice = createSlice({
     isOtpVerified: false,
     loading: false,
     error: null,
+    isAuthenticated: false
   },
   reducers: {
     setSignupData: (state, action) => {
       state.signupFormData = action.payload;
       state.email = action.payload.email;
     },
-    resetAuth: (state) => {
-      state.email = null;
-      state.signupFormData = null;
-      state.isOtpVerified = false;
-      state.error = null;
+    loginSuccess: (state, action) => {
+      state.user = action.payload;
+      state.isAuthenticated = true;
     },
+    logout: (state) => {
+      state.user = null;
+      state.isAuthenticated = false;
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -196,9 +211,17 @@ const authSlice = createSlice({
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+       .addCase(fetchMe.fulfilled, (state, action) => {
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+        state.loading = false;
+      })
+      .addCase(fetchMe.rejected, (state) => {
+        state.loading = false;
       });
   },
 });
 
-export const { setSignupData, resetAuth } = authSlice.actions;
+export const { setSignupData, resetAuth , logout , loginSuccess} = authSlice.actions;
 export default authSlice.reducer;

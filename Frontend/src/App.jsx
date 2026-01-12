@@ -19,77 +19,86 @@ import { PlaceOrder } from '../pages/PlaceOrder'
 import { SingleFooditems } from '../pages/SignleFoodItems'
 import { Cart } from '../pages/Cart'
 import { Orders } from '../pages/Orders'
+import { useDispatch } from "react-redux"
+import {fetchMe} from "../redux/authSlice"
+import {useEffect} from "react"
 
 
 
 function App() {
 
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(fetchMe());
+  }, []);
+
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <Layout />,   
+      element: <Layout />,
       children: [
-        { 
+        {
           path: "/",
-           element: <Home />
-         },
-        { 
-          path: "/signup", 
-          element: <Signup /> 
+          element: <Home />
         },
         {
-           path: "/verify-otp", 
-           element: <VerifyOtp /> 
+          path: "/signup",
+          element: <Signup />
         },
         {
-           path: "/login", 
-           element: <Login /> 
+          path: "/verify-otp",
+          element: <VerifyOtp />
         },
         {
-           path: "/profile", 
-           element: <Profile/>
+          path: "/login",
+          element: <Login />
         },
         {
-           path: "/about", 
-           element: <About/>
+          path: "/profile",
+          element: <Profile />
         },
         {
-           path: "/contact", 
-           element: <Contactus/>
+          path: "/about",
+          element: <About />
         },
         {
-           path: "/menu", 
-           element:<Menu/>
+          path: "/contact",
+          element: <Contactus />
         },
         {
-           path: "/order-placed", 
-           element: <OrderPlaced/>
+          path: "/menu",
+          element: <Menu />
         },
         {
-           path: "/place-order", 
-           element: <PlaceOrder/>
+          path: "/order-placed",
+          element: <OrderPlaced />
         },
         {
-           path: "/single-item", 
-           element: <SingleFooditems/>
+          path: "/place-order",
+          element: <PlaceOrder />
         },
         {
-           path: "/cart", 
-           element: <Cart/>
+          path: "/single-item",
+          element: <SingleFooditems />
         },
         {
-           path: "/orders", 
-           element: <Orders/>
+          path: "/cart",
+          element: <Cart />
+        },
+        {
+          path: "/orders",
+          element: <Orders />
         }
       ],
     },
     {
       path: "/admin",
-      element: <AdminLayout />, 
+      element: <AdminLayout />,
       children: [
-        { path: "", element: <AdminAddFooditems/> }, 
-        { path: "list", element: <AdminAddFooditemsList/> }, 
-        { path: "all-orders", element: <AdminAllOrders/> }
+        { path: "", element: <AdminAddFooditems /> },
+        { path: "list", element: <AdminAddFooditemsList /> },
+        { path: "all-orders", element: <AdminAllOrders /> }
       ],
     },
   ])
