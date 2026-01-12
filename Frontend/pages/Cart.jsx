@@ -1,9 +1,9 @@
 
 
-export const Contactus = ()=>{
+export const Cart = ()=>{
      return(
         <div>
-           contactus
+          cart
         </div>
      )
 }
