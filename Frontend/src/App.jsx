@@ -19,19 +19,21 @@ import { PlaceOrder } from '../pages/PlaceOrder'
 import { SingleFooditems } from '../pages/SignleFoodItems'
 import { Cart } from '../pages/Cart'
 import { Orders } from '../pages/Orders'
-import { useDispatch } from "react-redux"
-import {fetchMe} from "../redux/authSlice"
-import {useEffect} from "react"
+import { useDispatch , useSelector } from "react-redux"
+import { fetchMe } from "../redux/authSlice"
+import { useEffect } from "react"
 
 
 
 function App() {
-
+   const {loading } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
   useEffect(() => {
     dispatch(fetchMe());
-  }, []);
+  }, [dispatch]);
+
+   if (loading) return <div className="text-center mt-20">Loading...</div>;
 
   const router = createBrowserRouter([
     {
@@ -41,18 +43,6 @@ function App() {
         {
           path: "/",
           element: <Home />
-        },
-        {
-          path: "/signup",
-          element: <Signup />
-        },
-        {
-          path: "/verify-otp",
-          element: <VerifyOtp />
-        },
-        {
-          path: "/login",
-          element: <Login />
         },
         {
           path: "/profile",
@@ -101,6 +91,18 @@ function App() {
         { path: "all-orders", element: <AdminAllOrders /> }
       ],
     },
+    {
+      path: "/login",
+      element: <Login />
+    },
+    {
+      path: "/signup",
+      element: <Signup />
+    },
+     {
+          path: "/verify-otp",
+          element: <VerifyOtp />
+        },
   ])
 
   return (

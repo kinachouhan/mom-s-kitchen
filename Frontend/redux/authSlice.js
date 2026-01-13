@@ -1,11 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
-import {useNavigate} from "react-router-dom"
 
 const API = import.meta.env.VITE_API_URL;
 
-
-/* ---------------- VERIFY OTP ---------------- */
+/* ================= VERIFY OTP ================= */
 export const verifyOtp = createAsyncThunk(
   "auth/verifyOtp",
   async ({ email, otp }, { rejectWithValue }) => {
@@ -19,23 +17,17 @@ export const verifyOtp = createAsyncThunk(
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(
-          typeof data.message === "string"
-            ? data.message
-            : "Invalid OTP"
-        );
+        return rejectWithValue(data.message || "Invalid OTP");
       }
 
       return true;
     } catch (err) {
-      const msg = err.message || "Invalid OTP";
-      toast.error(msg);
-      return rejectWithValue(msg);
+      return rejectWithValue(err.message || "Invalid OTP");
     }
   }
 );
 
-/* ---------------- SIGNUP (AFTER OTP VERIFIED) ---------------- */
+/* ================= SIGNUP ================= */
 export const signupUser = createAsyncThunk(
   "auth/signup",
   async (formData, { rejectWithValue }) => {
@@ -43,33 +35,25 @@ export const signupUser = createAsyncThunk(
       const res = await fetch(`${API}/api/v1/user/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-         credentials: "include",
+        credentials: "include",
         body: JSON.stringify(formData),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(
-          typeof data.message === "string"
-            ? data.message
-            : "Signup failed"
-        );
+        return rejectWithValue(data.message || "Signup failed");
       }
 
       toast.success("Account created successfully 🎉");
       return data;
     } catch (err) {
-      const msg = err.message || "Signup failed";
-      toast.error(msg);
-      return rejectWithValue(msg);
+      return rejectWithValue("Signup failed");
     }
   }
 );
 
-
-//------------------Login...................//
-
+/* ================= LOGIN ================= */
 export const login = createAsyncThunk(
   "auth/login",
   async (formData, { rejectWithValue }) => {
@@ -77,29 +61,25 @@ export const login = createAsyncThunk(
       const res = await fetch(`${API}/api/v1/user/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-         credentials: "include",
+        credentials: "include",
         body: JSON.stringify(formData),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(
-          typeof data.message === "string"
-            ? data.message
-            : "Login failed"
-        );
+        return rejectWithValue(data.message || "Login failed");
       }
+
+      
       return data;
     } catch (err) {
-      const msg = err.message || "Login failed";
-      return rejectWithValue(msg);
+      return rejectWithValue("Login failed");
     }
   }
 );
 
-
-/* ---------------- RESEND OTP ---------------- */
+/* ================= RESEND OTP ================= */
 export const resendOtp = createAsyncThunk(
   "auth/resendOtp",
   async (email, { rejectWithValue }) => {
@@ -113,63 +93,79 @@ export const resendOtp = createAsyncThunk(
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(
-          typeof data.message === "string"
-            ? data.message
-            : "Unable to resend OTP"
-        );
+        return rejectWithValue(data.message || "Unable to resend OTP");
       }
 
       toast.success("OTP resent");
       return true;
     } catch (err) {
-      const msg = err.message || "Unable to resend OTP";
-      toast.error(msg);
-      return rejectWithValue(msg);
+      return rejectWithValue("Unable to resend OTP");
     }
   }
 );
 
-export const fetchMe = createAsyncThunk(
-  "auth/me",
-  async (_,) => {
+/* ================= FETCH ME ================= */
+export const fetchMe = createAsyncThunk("auth/me", async (_, { rejectWithValue }) => {
+  try {
     const res = await fetch(`${API}/api/v1/user/me`, {
       credentials: "include",
     });
-    if (!res.ok) throw new Error("Not authenticated");
-    return await res.json();
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return rejectWithValue(null); // silent fail
+    }
+
+    return data; // { user: {...}, isAdmin: true/false }
+  } catch (err) {
+    return rejectWithValue("Not authenticated");
+  }
+});
+
+/* ================= LOGOUT ================= */
+export const logout = createAsyncThunk(
+  "auth/logout",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await fetch(`${API}/api/v1/user/logout`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      const data = await res.json();
+      if (!res.ok) return rejectWithValue(data.message || "Logout failed");
+
+      toast.success("Logged out successfully");
+      return true;
+    } catch (err) {
+      return rejectWithValue("Logout failed");
+    }
   }
 );
 
-
-
-/* ---------------- SLICE ---------------- */
+/* ================= SLICE ================= */
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    email: null,
+    user: null,
     signupFormData: null,
     isOtpVerified: false,
+    isAuthenticated: false,
     loading: false,
     error: null,
-    isAuthenticated: false
   },
   reducers: {
     setSignupData: (state, action) => {
       state.signupFormData = action.payload;
-      state.email = action.payload.email;
     },
-    loginSuccess: (state, action) => {
-      state.user = action.payload;
-      state.isAuthenticated = true;
+    clearError: (state) => {
+      state.error = null;
     },
-    logout: (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
-    }
   },
   extraReducers: (builder) => {
     builder
+      // OTP
       .addCase(verifyOtp.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -180,48 +176,53 @@ const authSlice = createSlice({
       })
       .addCase(verifyOtp.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload; // string only
-      })
-      .addCase(resendOtp.pending, (state) => {
-        state.loading = true;
-      })
-      .addCase(resendOtp.fulfilled, (state) => {
-        state.loading = false;
-      })
-      .addCase(resendOtp.rejected, (state, action) => {
-        state.loading = false;
         state.error = action.payload;
       })
+      // SIGNUP
       .addCase(signupUser.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
-      .addCase(signupUser.fulfilled, (state) => {
+      .addCase(signupUser.fulfilled, (state, action) => {
         state.loading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
       })
       .addCase(signupUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
+      // LOGIN
       .addCase(login.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
-      .addCase(login.fulfilled, (state) => {
+      .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+
       })
-       .addCase(fetchMe.fulfilled, (state, action) => {
+      // FETCH ME
+      .addCase(fetchMe.fulfilled, (state, action) => {
         state.user = action.payload.user;
         state.isAuthenticated = true;
         state.loading = false;
       })
       .addCase(fetchMe.rejected, (state) => {
         state.loading = false;
+
+      })
+      // LOGOUT
+      .addCase(logout.fulfilled, (state) => {
+        state.user = null;
+        state.isAuthenticated = false;
       });
   },
 });
 
-export const { setSignupData, resetAuth , logout , loginSuccess} = authSlice.actions;
+export const { setSignupData, clearError } = authSlice.actions;
 export default authSlice.reducer;

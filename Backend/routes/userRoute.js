@@ -6,7 +6,8 @@ import {
   resendOtp,
   signup,
   login,
-  getMe
+  getMe,
+  logout
 } from "../controllers/userController.js";
 import {authMiddleware} from "../middleware/authMiddleware.js"
 
@@ -18,6 +19,7 @@ router.post("/resend-otp", resendOtp);
 router.post("/signup", signup);
 router.post("/login", login);
 router.get("/me", authMiddleware, getMe);
+router.delete("/logout", authMiddleware , logout)
 
 
 export default router;
