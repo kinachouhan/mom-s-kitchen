@@ -122,9 +122,6 @@ export const resendOtp = async (req, res) => {
 
 
 
-const ADMIN_EMAIL = process.env.EMAIL_USER;
-
-
 // ---------------- SIGNUP ----------------
 export const signup = async (req, res) => {
   try {
@@ -139,31 +136,44 @@ export const signup = async (req, res) => {
       return res.status(409).json({ success: false, message: "Email already registered" });
     }
 
-
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // 🔐 Assign role only if email matches ADMIN_EMAIL
+    const role = email === process.env.ADMIN_EMAIL ? "admin" : "user";
 
-    const user = await User.create({ name, phone, email, password: hashedPassword });
+    const user = await User.create({
+      name,
+      phone,
+      email,
+      password: hashedPassword,
+      role,
+    });
 
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
-    const isAdmin = email === ADMIN_EMAIL;
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
-
-    const token = jwt.sign({ userId: user._id, isAdmin }, process.env.JWT_SECRET, { expiresIn: "7d" });
-
-    res
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: false, // true only in production
-        sameSite: "lax", // works on localhost
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      })
-      .json({ success: true, message: "Success", isAdmin, user });
+    res.status(201).json({
+      success: true,
+      message: "Signup successful",
+      isAdmin: role === "admin",
+      user,
+    });
   } catch (err) {
     console.error("Signup error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // ---------------- LOGIN ----------------
 export const login = async (req, res) => {
@@ -184,23 +194,31 @@ export const login = async (req, res) => {
       return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
 
-    const isAdmin = email === ADMIN_EMAIL;
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
-    const token = jwt.sign({ userId: user._id, isAdmin }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
-    res
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: false, // true only in production
-        sameSite: "lax", // works on localhost
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      })
-      .json({ success: true, message: "Success", isAdmin, user });
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      isAdmin: user.role === "admin",
+      user,
+    });
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 
 export const getMe = async (req, res) => {
