@@ -9,50 +9,78 @@ export const Login = () => {
   const dispatch = useDispatch();
   const { isAuthenticated, user, loading } = useSelector((state) => state.auth);
 
-  const [formdetails, setFormdetails] = useState({ email: "", password: "" });
+  const [formDetails, setFormDetails] = useState({ email: "", password: "" });
 
-
-
+  // Fetch user on mount (for refresh)
   useEffect(() => {
-    if (isAuthenticated && user) {
-      if (user.isAdmin) navigate("/admin");
-      else navigate("/");
+    dispatch(fetchMe());
+  }, [dispatch]);
+
+  // Navigate when auth state is ready
+  useEffect(() => {
+    if (!loading && isAuthenticated && user) {
+      navigate(user.role === "admin" ? "/admin" : "/");
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, loading, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormdetails((prev) => ({ ...prev, [name]: value }));
+    setFormDetails((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      await dispatch(login(formdetails)).unwrap();
-      await dispatch(fetchMe()).unwrap();
+      // login first
+      await dispatch(login(formDetails)).unwrap();
 
+      // fetch user info to get role
+      const loggedUser = await dispatch(fetchMe()).unwrap();
+
+      // navigate based on role
+      navigate(loggedUser.role === "admin" ? "/admin" : "/");
       toast.success("Logged in successfully 🎉");
-      navigate("/");
     } catch (err) {
-      toast.error("Invalid credentials");
+      toast.error(err || "Invalid credentials");
     }
   };
 
+  if (loading) return <div className="text-center mt-20">Loading...</div>;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-lg shadow-md p-6 space-y-4">
-        <h2 className="text-2xl font-semibold text-center text-gray-800">Login</h2>
-        <input type="email" name="email" placeholder="Email Address" value={formdetails.email} onChange={handleChange} className="w-full px-3 py-2 border rounded-md focus:outline-none" />
-        <input type="password" name="password" placeholder="Password" value={formdetails.password} onChange={handleChange} className="w-full px-3 py-2 border rounded-md focus:outline-none" />
-        <button type="submit" disabled={loading} className={`cursor-pointer w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 rounded-md transition ${loading ? "opacity-70 cursor-not-allowed" : ""}`}>
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-sm bg-white rounded-lg shadow-md p-6 space-y-4"
+      >
+        <h2 className="text-2xl font-semibold text-center text-gray-800">
+          Login
+        </h2>
+        <input
+          type="email"
+          name="email"
+          placeholder="Email Address"
+          value={formDetails.email}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border rounded-md focus:outline-none"
+        />
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={formDetails.password}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border rounded-md focus:outline-none"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className={`cursor-pointer w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 rounded-md transition ${
+            loading ? "opacity-70 cursor-not-allowed" : ""
+          }`}
+        >
           {loading ? "Logging in..." : "Login"}
         </button>
-        <p className="text-sm text-center text-gray-500">
-          Doesn't have an account?{" "}
-          <span onClick={() => navigate("/signup")} className="text-orange-500 cursor-pointer hover:underline">Signup</span>
-        </p>
       </form>
     </div>
   );

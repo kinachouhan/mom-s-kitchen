@@ -76,3 +76,64 @@ export const getAllFoodItems = async (req, res) => {
         });
     }
 }
+
+export const deleteFoodItem = async (req, res) => {
+    try {
+        const { id } = req.params
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Food Item not found"
+            })
+        }
+
+        const foodItem = await FoodItem.findByIdAndDelete(id)
+
+        if (!foodItem) {
+            return res.status(404).json({
+                success: false,
+                message: "food Item not found"
+            })
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Food Item deleted successfully"
+        })
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to delete product",
+        });
+    }
+}
+
+export const getFoodItem = async (req, res) => {
+    try {
+        const { id } = req.params
+
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Food Item ID is required",
+            });
+        }
+
+        const foodItem = await FoodItem.findById(id)
+
+        return res.status(200).json({
+            success: true,
+            responseData: foodItem
+        })
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to fetch product",
+        });
+    }
+}

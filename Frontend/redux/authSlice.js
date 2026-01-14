@@ -71,13 +71,13 @@ export const login = createAsyncThunk(
         return rejectWithValue(data.message || "Login failed");
       }
 
-      
-      return data;
-    } catch (err) {
+      return data.user; // ✅ ONLY USER
+    } catch {
       return rejectWithValue("Login failed");
     }
   }
 );
+
 
 /* ================= RESEND OTP ================= */
 export const resendOtp = createAsyncThunk(
@@ -117,7 +117,7 @@ export const fetchMe = createAsyncThunk("auth/me", async (_, { rejectWithValue }
       return rejectWithValue(null); // silent fail
     }
 
-    return data; // { user: {...}, isAdmin: true/false }
+    return data.user; // { user: {...}, isAdmin: true/false }
   } catch (err) {
     return rejectWithValue("Not authenticated");
   }
@@ -136,7 +136,7 @@ export const logout = createAsyncThunk(
       const data = await res.json();
       if (!res.ok) return rejectWithValue(data.message || "Logout failed");
 
-      toast.success("Logged out successfully");
+
       return true;
     } catch (err) {
       return rejectWithValue("Logout failed");
@@ -199,7 +199,7 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.user;
+        state.user = action.payload;
         state.isAuthenticated = true;
       })
       .addCase(login.rejected, (state, action) => {
@@ -208,7 +208,7 @@ const authSlice = createSlice({
       })
       // FETCH ME
       .addCase(fetchMe.fulfilled, (state, action) => {
-        state.user = action.payload.user;
+        state.user = action.payload;
         state.isAuthenticated = true;
         state.loading = false;
       })
@@ -220,7 +220,12 @@ const authSlice = createSlice({
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.isAuthenticated = false;
+        state.signupFormData = null;
+        state.isOtpVerified = false;
+        state.loading = false;
+        state.error = null;
       });
+
   },
 });
 

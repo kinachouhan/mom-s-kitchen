@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../redux/authSlice";
 import { useEffect } from "react";
+import toast from "react-hot-toast"
 
 export const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);

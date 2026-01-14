@@ -19,26 +19,34 @@ import { PlaceOrder } from '../pages/PlaceOrder'
 import { SingleFooditems } from '../pages/SignleFoodItems'
 import { Cart } from '../pages/Cart'
 import { Orders } from '../pages/Orders'
-import { useDispatch , useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { fetchMe } from "../redux/authSlice"
 import { useEffect } from "react"
 
 
 
+
+
 function App() {
-   const {loading } = useSelector((state) => state.auth);
+
   const dispatch = useDispatch();
+  const { loading } = useSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(fetchMe());
   }, [dispatch]);
 
-   if (loading) return <div className="text-center mt-20">Loading...</div>;
 
+
+ 
   const router = createBrowserRouter([
     {
       path: "/",
-      element: <Layout />,
+      element: 
+      
+        <Layout />
+     
+      ,
       children: [
         {
           path: "/",
@@ -69,7 +77,7 @@ function App() {
           element: <PlaceOrder />
         },
         {
-          path: "/single-item",
+          path: "/single-item/:id",
           element: <SingleFooditems />
         },
         {
@@ -84,7 +92,9 @@ function App() {
     },
     {
       path: "/admin",
-      element: <AdminLayout />,
+      element: 
+        <AdminLayout />
+      ,
       children: [
         { path: "", element: <AdminAddFooditems /> },
         { path: "list", element: <AdminAddFooditemsList /> },
@@ -99,12 +109,15 @@ function App() {
       path: "/signup",
       element: <Signup />
     },
-     {
-          path: "/verify-otp",
-          element: <VerifyOtp />
-        },
+    {
+      path: "/verify-otp",
+      element: <VerifyOtp />
+    },
   ])
 
+  
+
+  if (loading) return <div className="text-center mt-20">Loading...</div>;
   return (
     <>
       <Toaster position="top-center" />

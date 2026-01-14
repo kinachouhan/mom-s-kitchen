@@ -57,6 +57,7 @@ export const Signup = () => {
       toast.success("OTP sent! Check your email ✉️");
 
       dispatch(setSignupData({ name, phone, email, password }));
+
       navigate("/verify-otp");
     } catch (err) {
       toast.error("Server error. Please try again.");
