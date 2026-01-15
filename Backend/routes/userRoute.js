@@ -7,7 +7,8 @@ import {
   signup,
   login,
   getMe,
-  logout
+  logout,
+  updateUserProfile
 } from "../controllers/userController.js";
 import {authMiddleware} from "../middleware/authMiddleware.js"
 
@@ -20,6 +21,7 @@ router.post("/signup", signup);
 router.post("/login", login);
 router.get("/me", authMiddleware, getMe);
 router.delete("/logout", authMiddleware , logout)
+router.put("/profile", authMiddleware, updateUserProfile);
 
 
 export default router;

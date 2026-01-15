@@ -228,7 +228,9 @@ export const getMe = async (req, res) => {
       id: req.user._id,
       name: req.user.name,
       email: req.user.email,
-       isAdmin: req.user.role === "admin"
+      phone: req.user.phone,
+      address: req.user.address || {},
+      isAdmin: req.user.role === "admin",
     },
   });
 };
@@ -245,4 +247,45 @@ export const logout = async (req, res) => {
       expires: new Date(0), // immediately expires
     })
     .json({ success: true, message: "Logged out successfully" });
+};
+
+
+
+export const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const address = req.body;
+
+    if (!address) {
+      return res.status(400).json({
+        success: false,
+        message: "Address is required",
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { address },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      responseData: {
+        address: updatedUser.address,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update profile",
+    });
+  }
 };

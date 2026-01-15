@@ -7,6 +7,7 @@ import cors from 'cors'
 import cookieParser from "cookie-parser";
 import foodItemRoute from "./routes/foodItemRoute.js"
 import cartRoute from "./routes/cartRoute.js"
+import orderRoute from "./routes/orderRoute.js"
 
 const app = express()
 const PORT = process.env.PORT || 5100
@@ -26,6 +27,7 @@ app.use(cors({ origin: "http://localhost:5173",
 app.use("/api/v1/user", userRoute)
 app.use("/api/v1/food-item" , foodItemRoute)
 app.use("/api/v1/cart", cartRoute)
+app.use("/api/v1/order", orderRoute)
 
 app.listen(PORT , ()=>{
      console.log(`Server is listening on ${PORT} port`)
