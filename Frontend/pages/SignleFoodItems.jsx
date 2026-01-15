@@ -1,31 +1,76 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { FaStar } from "react-icons/fa";
+import { addToCart, removeFromCart } from "../redux/cartSlice";
+import toast from "react-hot-toast";
 
 const API = import.meta.env.VITE_API_URL;
 
 export const SingleFooditems = () => {
+  const dispatch = useDispatch();
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.auth);
 
+  const { items, loading } = useSelector((state) => state.cart);
+
   /* ================= STATES ================= */
   const [food, setFood] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [foodLoading, setFoodLoading] = useState(true); // 🔹 renamed (fix)
   const [error, setError] = useState("");
 
   // Tabs & reviews
   const [activeTab, setActiveTab] = useState("description");
-  const [reviews, setReviews] = useState([]); // future API
+  const [reviews, setReviews] = useState([]);
   const [count, setCount] = useState(0);
-  const canReview = false; // change later when order logic added
+  const canReview = false;
+
+  const isInCart = items?.some(
+    (item) => item.foodItem?._id === food?._id || item.foodItemId === food?._id
+  );
+
+  /* ================= ADD TO CART ================= */
+  // const handleAddToCart = () => {
+  //   dispatch(
+  //     addToCart({
+  //       foodItemId: food._id,
+  //       quantity: 1,
+  //     })
+  //   );
+  //   toast.success("Added to cart 🛒");
+  // };
+
+
+  const handleCartToggle = () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to manage cart");
+      navigate("/login");
+      return;
+    }
+
+    if (!food?._id) return;
+
+    if (isInCart) {
+      dispatch(removeFromCart(food._id));
+      toast.success("Removed from cart ❌");
+    } else {
+      dispatch(
+        addToCart({
+          foodItemId: food._id,
+          quantity: 1,
+        })
+      );
+      toast.success("Added to cart 🛒");
+    }
+  };
+
 
   /* ================= FETCH FOOD ================= */
   useEffect(() => {
     const fetchFood = async () => {
       try {
-        setLoading(true);
+        setFoodLoading(true);
         const res = await fetch(`${API}/api/v1/food-item/${id}`);
         const data = await res.json();
 
@@ -38,20 +83,15 @@ export const SingleFooditems = () => {
       } catch (err) {
         setError("Something went wrong");
       } finally {
-        setLoading(false);
+        setFoodLoading(false);
       }
     };
 
     fetchFood();
   }, [id]);
 
-  const handleCart = () => {
-    if (!isAuthenticated) navigate("/login");
-    else navigate("/cart");
-  };
-
   /* ================= LOADING ================= */
-  if (loading) {
+  if (foodLoading) {
     return (
       <div className="flex justify-center items-center h-[60vh]">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500"></div>
@@ -77,7 +117,6 @@ export const SingleFooditems = () => {
   /* ================= UI ================= */
   return (
     <section className="max-w-6xl mx-auto px-4 py-10">
-      {/* Back */}
       <button
         onClick={() => navigate(-1)}
         className="mb-6 text-orange-500 font-medium"
@@ -85,9 +124,7 @@ export const SingleFooditems = () => {
         ← Back
       </button>
 
-      {/* ================= MAIN CARD ================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 bg-white rounded-2xl shadow-md p-6">
-        {/* IMAGE */}
         <div className="overflow-hidden rounded-xl">
           <img
             src={food.image}
@@ -96,7 +133,6 @@ export const SingleFooditems = () => {
           />
         </div>
 
-        {/* DETAILS */}
         <div className="space-y-4">
           <h1 className="text-3xl font-bold text-gray-800">{food.name}</h1>
 
@@ -113,24 +149,29 @@ export const SingleFooditems = () => {
             </span>
           </div>
 
-          {/* ACTIONS */}
           <div className="flex flex-wrap gap-4 pt-4">
             <button
-              onClick={handleCart}
-              className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full font-medium transition"
+              onClick={handleCartToggle}
+              disabled={loading}
+              className={`px-6 py-3 rounded-full font-medium transition ${isInCart
+                  ? "bg-orange-500 hover:bg-orange-600 text-white"
+                  : "bg-orange-500 hover:bg-orange-600 text-white"
+                }`}
             >
-              Add to Cart
+              {loading
+                ? "Please wait..."
+                : isInCart
+                  ? "Remove from Cart"
+                  : "Add to Cart"}
             </button>
 
             <button
-              onClick={handleCart}
               className="bg-orange-100 text-orange-600 hover:bg-orange-200 px-6 py-3 rounded-full font-medium transition"
             >
               Order Now
             </button>
           </div>
 
-          {/* FEATURES */}
           <div className="mt-6 border-t pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
             <p>🍲 Freshly cooked after order</p>
             <p>🧼 Hygienic kitchen</p>
@@ -145,22 +186,20 @@ export const SingleFooditems = () => {
         <div className="flex border-b">
           <button
             onClick={() => setActiveTab("description")}
-            className={`px-6 py-3 text-sm font-medium transition ${
-              activeTab === "description"
-                ? "border-b-2 border-orange-500 text-orange-600"
-                : "text-gray-500"
-            }`}
+            className={`px-6 py-3 text-sm font-medium transition ${activeTab === "description"
+              ? "border-b-2 border-orange-500 text-orange-600"
+              : "text-gray-500"
+              }`}
           >
             Description
           </button>
 
           <button
             onClick={() => setActiveTab("reviews")}
-            className={`px-6 py-3 text-sm font-medium transition ${
-              activeTab === "reviews"
-                ? "border-b-2 border-orange-500 text-orange-600"
-                : "text-gray-500"
-            }`}
+            className={`px-6 py-3 text-sm font-medium transition ${activeTab === "reviews"
+              ? "border-b-2 border-orange-500 text-orange-600"
+              : "text-gray-500"
+              }`}
           >
             Reviews ({count})
           </button>
@@ -227,11 +266,10 @@ export const SingleFooditems = () => {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <FaStar
                         key={star}
-                        className={`text-sm ${
-                          star <= r.rating
-                            ? "text-yellow-400"
-                            : "text-gray-300"
-                        }`}
+                        className={`text-sm ${star <= r.rating
+                          ? "text-yellow-400"
+                          : "text-gray-300"
+                          }`}
                       />
                     ))}
                     <span className="text-sm font-medium">{r.user}</span>

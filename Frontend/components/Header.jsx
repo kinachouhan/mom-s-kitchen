@@ -15,6 +15,7 @@ export const Header = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { isAuthenticated, loading } = useSelector((state) => state.auth);
+  const { items } = useSelector((state) => state.cart);
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -24,20 +25,20 @@ export const Header = () => {
 
 
   useEffect(() => {
-  if (!isAuthenticated && !loading) {
-    navigate("/login", { replace: true });
-  }
-}, [isAuthenticated, loading, navigate]);
+    if (!isAuthenticated && !loading) {
+      navigate("/login", { replace: true });
+    }
+  }, [isAuthenticated, loading, navigate]);
 
 
-const handleLogout = async () => {
-  try {
-    await dispatch(logout()).unwrap();
-    toast.success("Logged out successfully 🎉");
-  } catch {
-    toast.error("Logout failed");
-  }
-};
+  const handleLogout = async () => {
+    try {
+      await dispatch(logout()).unwrap();
+      toast.success("Logged out successfully 🎉");
+    } catch {
+      toast.error("Logout failed");
+    }
+  };
 
   return (
     <header className="bg-white shadow-md fixed w-full z-50">
@@ -62,8 +63,7 @@ const handleLogout = async () => {
               key={path}
               to={path}
               className={({ isActive }) =>
-                `font-medium transition ${
-                  isActive ? "text-orange-500" : "text-gray-700 hover:text-orange-500"
+                `font-medium transition ${isActive ? "text-orange-500" : "text-gray-700 hover:text-orange-500"
                 }`
               }
             >
@@ -110,10 +110,15 @@ const handleLogout = async () => {
           </div>
 
           {/* CART */}
-          <FaCartArrowDown
-            onClick={() => navigate("/cart")}
-            className="text-2xl cursor-pointer hover:text-orange-500 transition"
-          />
+          <div className="relative cursor-pointer" onClick={() => navigate("/cart")}>
+            <FaCartArrowDown className="text-2xl hover:text-orange-500 transition" />
+
+            {items?.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                {items.length}
+              </span>
+            )}
+          </div>
 
           {/* MOBILE MENU ICON */}
           <button className="md:hidden text-2xl" onClick={() => setMenuOpen(!menuOpen)}>
@@ -132,8 +137,7 @@ const handleLogout = async () => {
                 to={path}
                 onClick={closeMenu}
                 className={({ isActive }) =>
-                  `px-6 py-3 text-sm font-medium transition ${
-                    isActive ? "text-orange-500 bg-orange-50" : "text-gray-700 hover:bg-gray-100"
+                  `px-6 py-3 text-sm font-medium transition ${isActive ? "text-orange-500 bg-orange-50" : "text-gray-700 hover:bg-gray-100"
                   }`
                 }
               >
