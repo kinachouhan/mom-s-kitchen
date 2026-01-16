@@ -156,7 +156,9 @@ export const Cart = () => {
               <span>₹{totalAmount}</span>
             </div>
 
-            <button className="w-full bg-orange-500 text-white py-3 rounded-full mb-3">
+            <button
+             onClick={()=>navigate("/checkout")}
+             className="w-full bg-orange-500 text-white py-3 rounded-full mb-3">
               Proceed to Checkout
             </button>
 

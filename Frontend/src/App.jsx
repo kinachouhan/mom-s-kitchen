@@ -22,8 +22,7 @@ import { Orders } from '../pages/Orders'
 import { useDispatch, useSelector } from "react-redux"
 import { fetchMe } from "../redux/authSlice"
 import { useEffect } from "react"
-
-
+import { Checkout } from '../components/Checkout'
 
 
 
@@ -87,6 +86,10 @@ function App() {
         {
           path: "/orders",
           element: <Orders />
+        },
+        {
+          path: "/checkout",
+          element: <Checkout/>
         }
       ],
     },
