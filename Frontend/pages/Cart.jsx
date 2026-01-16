@@ -54,10 +54,19 @@ export const Cart = () => {
   };
 
   /* ================= TOTAL ================= */
+
   const totalAmount = items.reduce(
-    (acc, item) => acc + item.foodItem.price * item.quantity,
+    (acc, item) =>
+      acc + (item?.foodItem?.price || 0) * item.quantity,
     0
-  );
+  )
+
+  const getItemTotal = (item) => {
+    const price = Number(item?.foodItem?.price) || 0;
+    const qty = Number(item?.quantity) || 0;
+    return price * qty;
+  };
+
 
   /* ================= LOADING (ONLY FETCH) ================= */
   if (loading.fetch) {
@@ -110,7 +119,12 @@ export const Cart = () => {
                 <div className="flex items-center gap-3 mt-3">
                   <button
                     onClick={() => handleDecrease(item)}
-                    className="px-3 py-1 border rounded"
+                    disabled={item.quantity === 1}
+                    className={`px-3 py-1 border rounded 
+    ${item.quantity === 1
+                        ? "opacity-40 cursor-not-allowed"
+                        : "hover:bg-gray-100"}
+  `}
                   >
                     −
                   </button>
@@ -128,7 +142,7 @@ export const Cart = () => {
 
               <div className="flex flex-col items-end justify-between">
                 <p className="font-semibold">
-                  ₹{item.foodItem.price * item.quantity}
+                  ₹{getItemTotal(item)}
                 </p>
 
                 <button
@@ -157,8 +171,8 @@ export const Cart = () => {
             </div>
 
             <button
-             onClick={()=>navigate("/checkout")}
-             className="w-full bg-orange-500 text-white py-3 rounded-full mb-3">
+              onClick={() => navigate("/checkout")}
+              className="w-full bg-orange-500 text-white py-3 rounded-full mb-3">
               Proceed to Checkout
             </button>
 

@@ -44,10 +44,11 @@ export const addToCart = async (req, res) => {
 
     await cart.save()
     await cart.populate("items.foodItem")
+    
 
     res.status(200).json({
       success: true,
-      cart
+       cart
     })
 
   } catch (error) {
@@ -77,6 +78,7 @@ export const removeFromCart = async (req, res) => {
         cart.items = cart.items.filter((item) => item.foodItem.toString() !== foodItemId)
 
         await cart.save()
+        await cart.populate("items.foodItem")
 
         res.status(200).json({
             success: true,

@@ -80,9 +80,9 @@ export const getAllOrders = createAsyncThunk(
 
 export const updateOrderStatus = createAsyncThunk(
     "order/updateOrderStatus",
-    async ({ id, status }, { rejectWithValue }) => {
+    async ({ orderId, status }, { rejectWithValue }) => {
         try {
-            const res = await fetch(`${API}/api/v1/order/${id}/status`, {
+            const res = await fetch(`${API}/api/v1/order/${orderId}/status`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
